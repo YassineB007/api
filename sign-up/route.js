@@ -8,7 +8,10 @@ export async function POST(request) {
 
     // Validate required fields
     if (!name || !surname || !username || !email || !password || !birthdate) {
-      return Response.json({ message: "All fields are required" }, { status: 400 });
+      return new Response(
+        JSON.stringify({ message: "All fields are required" }),
+        { status: 400, headers: { "Access-Control-Allow-Origin": "*" } }
+      );
     }
 
     // Create a pool connection to the database
@@ -29,19 +32,22 @@ export async function POST(request) {
     ]);
     if (existingUser.length > 0) {
       await pool.end(); // Close the connection after query
-      return Response.json({ message: "Username or email already taken" }, { status: 400 });
+      return new Response(
+        JSON.stringify({ message: "Username or email already taken" }),
+        { status: 400, headers: { "Access-Control-Allow-Origin": "*" } }
+      );
     }
 
     // Validate password strength
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
       await pool.end(); // Close the connection after query
-      return Response.json(
-        {
+      return new Response(
+        JSON.stringify({
           message:
             "Password must be at least 8 characters, include one uppercase letter, one number, and one special character.",
-        },
-        { status: 400 }
+        }),
+        { status: 400, headers: { "Access-Control-Allow-Origin": "*" } }
       );
     }
 
@@ -68,12 +74,25 @@ export async function POST(request) {
 
     await pool.end(); // Close the connection after query
 
-    return Response.json(
-      { message: "User registered successfully", id: result.insertId },
-      { status: 201 }
+    return new Response(
+      JSON.stringify({ message: "User registered successfully", id: result.insertId }),
+      {
+        status: 201,
+        headers: {
+          "Access-Control-Allow-Origin": "*", // Allow all origins (can be restricted to specific domains)
+          "Access-Control-Allow-Methods": "POST, GET, OPTIONS", // Allow these HTTP methods
+          "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow headers (add more if needed)
+        },
+      }
     );
   } catch (error) {
     console.error("Database error:", error);
-    return Response.json({ message: "Database error", error }, { status: 500 });
+    return new Response(
+      JSON.stringify({ message: "Database error", error }),
+      {
+        status: 500,
+        headers: { "Access-Control-Allow-Origin": "*" }, // Allow all origins
+      }
+    );
   }
 }

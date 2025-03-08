@@ -24,7 +24,10 @@ export async function POST(req) {
     if (users.length === 0) {
       console.log("User not found");
       await pool.end();  // Close DB connection after query
-      return new Response(JSON.stringify({ message: "User not found" }), { status: 404 });
+      return new Response(
+        JSON.stringify({ message: "User not found" }),
+        { status: 404, headers: { "Access-Control-Allow-Origin": "*" } }
+      );
     }
 
     const user = users[0];
@@ -34,7 +37,10 @@ export async function POST(req) {
 
     if (!isMatch) {
       await pool.end();  // Close DB connection after query
-      return new Response(JSON.stringify({ message: "Invalid password" }), { status: 401 });
+      return new Response(
+        JSON.stringify({ message: "Invalid password" }),
+        { status: 401, headers: { "Access-Control-Allow-Origin": "*" } }
+      );
     }
 
     // Generate JWT token with all user fields
@@ -59,10 +65,23 @@ export async function POST(req) {
         token,
         user: tokenPayload,
       }),
-      { status: 200 }
+      {
+        status: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*", // Allow all origins (can be restricted to specific domains)
+          "Access-Control-Allow-Methods": "POST, GET, OPTIONS", // Allow these HTTP methods
+          "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow headers (add more if needed)
+        },
+      }
     );
   } catch (error) {
     console.error("Server Error:", error);
-    return new Response(JSON.stringify({ message: "Internal server error", error: error.message }), { status: 500 });
+    return new Response(
+      JSON.stringify({ message: "Internal server error", error: error.message }),
+      {
+        status: 500,
+        headers: { "Access-Control-Allow-Origin": "*" }, // Allow all origins
+      }
+    );
   }
 }

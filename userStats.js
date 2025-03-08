@@ -12,6 +12,17 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*", // Allow all origins, adjust if needed
+  "Access-Control-Allow-Methods": "GET, OPTIONS", // Allow GET and OPTIONS methods
+  "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow necessary headers
+};
+
+// Handle OPTIONS request for pre-flight CORS
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: corsHeaders });
+}
+
 export async function GET(req) {
   try {
     const userId = req.query.userId;  // assuming you send userId as a query parameter
@@ -19,7 +30,7 @@ export async function GET(req) {
     if (!userId) {
       return new Response(
         JSON.stringify({ message: "User ID is required" }),
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -32,7 +43,7 @@ export async function GET(req) {
     if (userStats.length === 0) {
       return new Response(
         JSON.stringify({ message: "User not found" }),
-        { status: 404 }
+        { status: 404, headers: corsHeaders }
       );
     }
 
@@ -40,13 +51,13 @@ export async function GET(req) {
 
     return new Response(
       JSON.stringify({ rank, xp }),
-      { status: 200 }
+      { status: 200, headers: corsHeaders }
     );
   } catch (error) {
     console.error("Database error:", error);
     return new Response(
       JSON.stringify({ message: "Internal server error", error: error.message }),
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }

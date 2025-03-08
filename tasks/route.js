@@ -13,13 +13,24 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*", // Allow all origins, adjust if needed
+  "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PATCH, DELETE", // Allow necessary HTTP methods
+  "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow custom headers
+};
+
+// Handle OPTIONS request for pre-flight CORS
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: corsHeaders });
+}
+
 export async function GET() {
   try {
     const [tasks] = await pool.query("SELECT * FROM tasks");
-    return NextResponse.json(tasks);
+    return NextResponse.json(tasks, { headers: corsHeaders });
   } catch (error) {
     console.error("Database error:", error);
-    return NextResponse.json({ error: "Failed to fetch tasks" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch tasks" }, { status: 500, headers: corsHeaders });
   }
 }
 
@@ -28,7 +39,7 @@ export async function POST(req) {
     const { user_id, name, description, difficulty } = await req.json();
 
     if (!user_id || !name || !description || !difficulty) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400, headers: corsHeaders });
     }
 
     await pool.query(
@@ -36,10 +47,10 @@ export async function POST(req) {
       [name, description, difficulty, user_id]
     );
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { headers: corsHeaders });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Failed to add task" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to add task" }, { status: 500, headers: corsHeaders });
   }
 }
 
@@ -80,10 +91,10 @@ export async function PATCH(req) {
       await pool.query("UPDATE users SET rank = ? WHERE id = ?", [newRank, user_id]);
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { headers: corsHeaders });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Failed to update task" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update task" }, { status: 500, headers: corsHeaders });
   }
 }
 
@@ -91,8 +102,8 @@ export async function DELETE(req) {
   try {
     const { task_id } = await req.json();
     await pool.query("DELETE FROM tasks WHERE task_id = ?", [task_id]);
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { headers: corsHeaders });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to delete task" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete task" }, { status: 500, headers: corsHeaders });
   }
 }
