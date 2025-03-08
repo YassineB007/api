@@ -1,5 +1,5 @@
 import { hash } from "bcryptjs";
-import pool from "@/lib/db";
+import mysql from "mysql2/promise";
 
 export async function POST(request) {
   try {
@@ -11,17 +11,31 @@ export async function POST(request) {
       return Response.json({ message: "All fields are required" }, { status: 400 });
     }
 
+    // Create a pool connection to the database
+    const pool = mysql.createPool({
+      host: "srv1580.hstgr.io",
+      user: "u634330012_yacineb007",
+      password: "Lord edge1",
+      database: "u634330012_task",
+      port: 3306, // Use port 3306 as an integer
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+    });
+
     // Validate username uniqueness
     const [existingUser] = await pool.query("SELECT * FROM users WHERE username = ? || email = ?", [
-      username,email
+      username, email
     ]);
     if (existingUser.length > 0) {
+      await pool.end(); // Close the connection after query
       return Response.json({ message: "Username or email already taken" }, { status: 400 });
     }
 
     // Validate password strength
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
+      await pool.end(); // Close the connection after query
       return Response.json(
         {
           message:
@@ -51,6 +65,8 @@ export async function POST(request) {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [name, surname, username, email, hashedPassword, birthdate, ageInYears, xp, rank, imageUrl]
     );
+
+    await pool.end(); // Close the connection after query
 
     return Response.json(
       { message: "User registered successfully", id: result.insertId },

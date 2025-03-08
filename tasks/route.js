@@ -1,5 +1,17 @@
 import { NextResponse } from "next/server";
-import pool from "@/lib/db"; // Adjust based on your structure
+import mysql from "mysql2/promise"; // Import mysql2 for creating a pool connection
+
+// Create a pool connection to the database
+const pool = mysql.createPool({
+  host: "srv1580.hstgr.io",
+  user: "u634330012_yacineb007",
+  password: "Lord edge1",
+  database: "u634330012_task",
+  port: 3306, // Ensure the port is correctly set as a number
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
 
 export async function GET() {
   try {

@@ -1,21 +1,19 @@
 import mysql from "mysql2/promise";
 
 // MySQL connection settings
-const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT } = process.env;
+const pool = mysql.createPool({
+  host: "srv1580.hstgr.io",
+  user: "u634330012_yacineb007",
+  password: "Lord edge1",
+  database: "u634330012_task",
+  port: 3306,  // Use the port number directly
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
 
 export async function GET(req) {
   try {
-    const pool = await mysql.createPool({
-      host: DB_HOST,
-      user: DB_USER,
-      password: DB_PASSWORD,
-      database: DB_NAME,
-      port: DB_PORT,
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-    });
-
     const userId = req.query.userId;  // assuming you send userId as a query parameter
 
     if (!userId) {
